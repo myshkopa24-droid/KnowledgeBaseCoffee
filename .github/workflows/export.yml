@@ -1,0 +1,44 @@
+name: Export Notion Knowledge Base
+
+on:
+  workflow_dispatch: # Запуск по кнопке в интерфейсе GitHub
+
+permissions:
+  contents: write # Разрешаем роботу сохранять выгруженные файлы в репозиторий
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Скачиваем файлы репозитория
+        uses: actions/checkout@v4
+
+      - name: Настраиваем Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Устанавливаем библиотеки
+        run: pip install -r requirements.txt
+
+      - name: Запускаем выгрузку из Notion
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          DB_COFFEE_LOTS: ${{ secrets.DB_COFFEE_LOTS }}
+          DB_REGIONS: ${{ secrets.DB_REGIONS }}
+          DB_COUNTRIES: ${{ secrets.DB_COUNTRIES }}
+          DB_FLAVOR_NOTES: ${{ secrets.DB_FLAVOR_NOTES }}
+          DB_PROCESSING: ${{ secrets.DB_PROCESSING }}
+          DB_BREWING: ${{ secrets.DB_BREWING }}
+          DB_TASTINGS: ${{ secrets.DB_TASTINGS }}
+          DB_MEDIA: ${{ secrets.DB_MEDIA }}
+        run: python export_notion_kb.py
+
+      - name: Сохраняем таблицы и страницы в репозиторий
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/ data/
+          git diff --staged --quiet || git commit -m "Update knowledge base export from Notion"
+          git push
