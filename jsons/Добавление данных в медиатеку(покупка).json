@@ -1,0 +1,546 @@
+{
+  "name": "Добавление данных в медиатеку(покупка)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        1152,
+        448
+      ],
+      "id": "0ec814ac-62db-49b1-87de-64a4b86ec6f9",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://shop.tastycoffee.ru/coffee?filters=56,36,37,38,39,40",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1344,
+        448
+      ],
+      "id": "774e6e45-f821-414f-a052-e643325a0fc1",
+      "name": "HTTP Request (сайт про кофе)"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "dataSourceId": {
+          "__rl": true,
+          "value": "40131822-8586-8067-8e2d-000bb2e448df",
+          "mode": "list",
+          "cachedResultName": "Медиатека / Источники",
+          "cachedResultUrl": "https://app.notion.com/p/4013182285868094a7d3db463fe96fc7"
+        },
+        "title": "={{ $json.title }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "URL (Ссылка)|url",
+              "urlValue": "=https://shop.tastycoffee.ru{{ $json.link }}"
+            },
+            {
+              "key": "Тип контента|select",
+              "selectValue": "Ссылка на продавца"
+            },
+            {
+              "key": "Название материала|title",
+              "title": "={{ $json.title }}"
+            },
+            {
+              "key": "Источник / Магазин|rich_text",
+              "textContent": "Сайт Tasty Coffee"
+            },
+            {
+              "key": "Обложка / Превью|files",
+              "fileUrls": {
+                "fileUrl": [
+                  {
+                    "name": "={{ $json.title }}",
+                    "url": "={{ $json.img }}"
+                  }
+                ]
+              }
+            },
+            {
+              "key": "🍒 Вкусы / Дескрипторы|relation",
+              "relationValue": [
+                "={{ $json.flavorIds[0] }}",
+                "={{ $json.flavorIds[1] }}",
+                "={{ $json.flavorIds[2] }}"
+              ]
+            },
+            {
+              "key": "🫘 Способы обработки|relation",
+              "relationValue": [
+                "={{ $json.processing[0] }}"
+              ]
+            },
+            {
+              "key": "🌏 Страны|relation",
+              "relationValue": [
+                "={{ $json.countryIds[0] }}",
+                "={{ $json.countryIds[1] }}"
+              ]
+            },
+            {
+              "key": "🌏 Регионы|relation",
+              "relationValue": [
+                "={{ $json.regionIds[0] }}"
+              ]
+            },
+            {
+              "key": "☕ Лоты кофе|relation",
+              "relationValue": [
+                "={{ $json.existingPageId }}"
+              ]
+            }
+          ]
+        },
+        "blockUi": {
+          "blockValues": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 3,
+      "position": [
+        3408,
+        448
+      ],
+      "id": "f4819737-b531-4277-aef6-9e7fc6570140",
+      "name": "Create a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "x5CsaMoY1pay7xQk",
+          "name": "Notion account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://shop.tastycoffee.ru{{ $json.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1872,
+        448
+      ],
+      "id": "8411f947-ff00-4d06-98f0-35977a30f385",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "descriptors",
+              "cssSelector": ".descriptor-badge",
+              "returnArray": true
+            },
+            {
+              "key": "desc",
+              "cssSelector": "ul.list-none li",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        2048,
+        448
+      ],
+      "id": "2391b906-4195-45cf-b231-85881516ab83",
+      "name": "HTML (разбор страницы кофе)"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "cards",
+              "cssSelector": ".tc-tile",
+              "returnValue": "html",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        1520,
+        448
+      ],
+      "id": "f4e671b1-7e6e-4b39-9f80-335ebf866538",
+      "name": "HTML (сбор инфы с главной)"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "dataSourceId": {
+          "__rl": true,
+          "value": "3db31822-8586-80b7-8189-000b51affb80",
+          "mode": "list",
+          "cachedResultName": "Вкусы / Дескрипторы",
+          "cachedResultUrl": "https://app.notion.com/p/3db31822858680e7a837cceb9e3c3698"
+        },
+        "returnAll": true,
+        "filterType": "json",
+        "filterJson": "={{\n  JSON.stringify({\n    \"or\": ($json.descriptors.length ? $json.descriptors : [\"__nothing__\"]).map(name => ({\n      \"property\": \"Название вкуса\",\n      \"title\": {\n        \"equals\": name\n      }\n    }))\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 3,
+      "position": [
+        2592,
+        448
+      ],
+      "id": "93399407-e2bd-4a5c-ac0c-c0741b2d6fdb",
+      "name": "Get many database pages (вкусы)",
+      "executeOnce": false,
+      "credentials": {
+        "notionApi": {
+          "id": "x5CsaMoY1pay7xQk",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cards = $input.first().json.cards || [];\nconst results = [];\n\nfor (const cardHtml of cards) {\n  // Пропускаем карточку, если это \"Сорт недели\"\n  if (/сорт недели/i.test(cardHtml)) {\n    continue;\n  }\n\n  // Извлекаем ссылку и название из .tc-tile__title a\n  const titleMatch = cardHtml.match(/class=\"[^\"]*tc-tile__title[^\"]*\"[\\s\\S]*?<a[^>]*href=\"([^\"]+)\"[^>]*>([\\s\\S]*?)<\\/a>/i);\n  // Извлекаем картинку из .tc-tile__picture img\n  const imgMatch = cardHtml.match(/class=\"[^\"]*tc-tile__picture[^\"]*\"[\\s\\S]*?<img[^>]*src=\"([^\"]+)\"/i);\n\n  if (titleMatch) {\n    const link = titleMatch[1].trim();\n    const title = titleMatch[2].replace(/<[^>]+>/g, '').trim();\n    const img = imgMatch ? imgMatch[1].trim() : '';\n\n    // Дополнительная проверка по названию\n    if (title && !/сорт недели/i.test(title)) {\n      results.push({\n        json: {\n          title,\n          link,\n          img\n        }\n      });\n    }\n  }\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        448
+      ],
+      "id": "9040ab74-dd43-44a3-bab0-2bb61c874a9b",
+      "name": "Карточки товаров"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "dataSourceId": {
+          "__rl": true,
+          "value": "3db31822-8586-8087-9fe4-000b467bf00c",
+          "mode": "list",
+          "cachedResultName": "Страны",
+          "cachedResultUrl": "https://app.notion.com/p/3db31822858680f7bce6df35d47ea611"
+        },
+        "returnAll": true,
+        "filterType": "json",
+        "filterJson": "={{\n  (() => {\n    const allCountries = $('Проверка нахождения ключевых слов')\n      .all()\n      .flatMap(item => item.json.countries || []);\n    const uniqueCountries = [...new Set(allCountries)];\n\n    return JSON.stringify({\n      \"or\": (uniqueCountries.length ? uniqueCountries : [\"__nothing__\"]).map(name => ({\n        \"property\": \"Название страны\",\n        \"title\": {\n          \"contains\": name\n        }\n      }))\n    });\n  })()\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 3,
+      "position": [
+        2752,
+        448
+      ],
+      "id": "78a64443-4c1e-4da8-8fcd-125a85c4bc0c",
+      "name": "Get many database pages (страны)",
+      "executeOnce": true,
+      "credentials": {
+        "notionApi": {
+          "id": "x5CsaMoY1pay7xQk",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "dataSourceId": {
+          "__rl": true,
+          "value": "3d231822-8586-80f1-bb08-000bf6941907",
+          "mode": "list",
+          "cachedResultName": "Регионы",
+          "cachedResultUrl": "https://app.notion.com/p/3d2318228586802cb618f51732959b75"
+        },
+        "returnAll": true,
+        "filterType": "json",
+        "filterJson": "={{\n  (() => {\n    const allRegions = $('Проверка нахождения ключевых слов')\n      .all()\n      .flatMap(item => item.json.regions || []);\n    const uniqueRegions = [...new Set(allRegions)];\n\n    return JSON.stringify({\n      \"or\": (uniqueRegions.length ? uniqueRegions : [\"__nothing__\"]).map(name => ({\n        \"property\": \"Название региона\",\n        \"title\": {\n          \"contains\": name\n        }\n      }))\n    });\n  })()\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 3,
+      "position": [
+        2912,
+        448
+      ],
+      "id": "b9469166-898e-4464-99f8-4c13f22db7d3",
+      "name": "Get many database pages (регионы)",
+      "executeOnce": true,
+      "credentials": {
+        "notionApi": {
+          "id": "x5CsaMoY1pay7xQk",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const splitItems = $('Карточки товаров').all();\nconst processedItems = $('Проверка нахождения ключевых слов').all();\nconst notionFlavors = $('Get many database pages (вкусы)').all();\nconst notionCountries = $('Get many database pages (страны)').all();\nconst notionRegions = $('Get many database pages (регионы)').all();\n\n// === НОВОЕ: существующие страницы (лоты) для проверки дублей ===\nconst existingLots = $('Get many database pages(зёрна)').all();\n\n// МАКСИМАЛЬНО ЖЕСТКАЯ ОЧИСТКА (как было)\nfunction cleanStr(str) {\n  if (!str) return '';\n  return str\n    .replace(/\\(.*/g, '')\n    .replace(/[^\\wа-яё\\s-]/gi, '')\n    .replace(/[\\u00A0\\s]+/g, ' ')\n    .trim()\n    .toLowerCase();\n}\n\n// Нормализация названия лота для сравнения\nfunction normalizeTitle(str) {\n  if (!str) return '';\n  return String(str)\n    .toLowerCase()\n    .replace(/\\(.*?\\)/g, ' ')\n    .replace(/[^\\wа-яё\\s-]/gi, ' ')\n    .replace(/\\b\\d+\\s*(г|гр|kg|кг|мл)\\b/gi, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nfunction firstWords(str, n) {\n  return str.split(' ').slice(0, n).join(' ');\n}\n\n// === Карта существующих лотов: нормализованное имя -> id ===\nconst existingMap = new Map();\nfor (const page of existingLots) {\n  const props = page.json.properties || {};\n  let title = '';\n\n  for (const prop of Object.values(props)) {\n    if (prop?.type === 'title' && Array.isArray(prop.title)) {\n      title = prop.title.map(t => t.plain_text).join('');\n      break;\n    }\n  }\n  if (!title) title = page.json.name || page.json.title || '';\n\n  const key = normalizeTitle(title);\n  if (key && page.json.id) {\n    existingMap.set(key, page.json.id);\n  }\n}\n\nfunction findExistingId(title) {\n  const key = normalizeTitle(title);\n  if (!key) return null;\n\n  // 1) точное совпадение после нормализации\n  if (existingMap.has(key)) return existingMap.get(key);\n\n  // 2) нечёткое: вхождение / совпадение первых слов\n  for (const [existingKey, id] of existingMap.entries()) {\n    if (\n      existingKey.includes(key) ||\n      key.includes(existingKey) ||\n      firstWords(existingKey, 3) === firstWords(key, 3)\n    ) {\n      return id;\n    }\n  }\n  return null;\n}\n\n// === Существующие хелперы (как было) ===\nfunction buildLookupMap(pages) {\n  const map = {};\n  for (const page of pages) {\n    let rawTitle = page.json.name || '';\n\n    if (!rawTitle && page.json.properties) {\n      for (const prop of Object.values(page.json.properties)) {\n        if (prop?.type === 'title' && Array.isArray(prop.title)) {\n          rawTitle = prop.title.map(t => t.plain_text).join('');\n          break;\n        }\n      }\n    }\n\n    const cleanTitle = cleanStr(rawTitle);\n\n    if (cleanTitle && page.json.id) {\n      map[cleanTitle] = page.json.id;\n    }\n  }\n  return map;\n}\n\nconst flavorMap = buildLookupMap(notionFlavors);\nconst countryMap = buildLookupMap(notionCountries);\nconst regionMap = buildLookupMap(notionRegions);\n\nfunction mapNamesToIds(namesArray, lookupMap) {\n  if (!Array.isArray(namesArray)) return [];\n  return namesArray.map(name => {\n    const cleanName = cleanStr(name);\n    return lookupMap[cleanName];\n  }).filter(Boolean);\n}\n\n// === Собираем результат + проверка дублей ===\nreturn processedItems.map((item, index) => {\n  const baseInfo = splitItems[index]?.json || {};\n  const data = item.json;\n  const title = baseInfo.title;\n\n  const existingPageId = findExistingId(title);\n\n  return {\n    json: {\n      ...data,\n      title,\n      link: baseInfo.link,\n      img: baseInfo.img,\n      flavorIds: mapNamesToIds(data.descriptors, flavorMap),\n      countryIds: mapNamesToIds(data.countries, countryMap),\n      regionIds: mapNamesToIds(data.regions, regionMap),\n      existingPageId: existingPageId || null,\n      isDuplicate: Boolean(existingPageId)\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3232,
+        448
+      ],
+      "id": "72db4c23-400d-400a-bbae-5c80d728e8af",
+      "name": "Замена всего на id"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "dataSourceId": {
+          "__rl": true,
+          "value": "3d231822-8586-8071-88ab-000bb31cb6d3",
+          "mode": "list",
+          "cachedResultName": "Лоты кофе",
+          "cachedResultUrl": "https://app.notion.com/p/3d2318228586805caf8cdd6aa1e8ae19"
+        },
+        "returnAll": true,
+        "filterType": "json",
+        "filterJson": "={{\n  (() => {\n    const titles = $('Карточки товаров')\n      .all()\n      .map(i => i.json.title)\n      .filter(Boolean);\n    return JSON.stringify({\n      \"or\": (titles.length ? titles : [\"__nothing__\"]).map(name => ({\n        \"property\": \"Название\",\n        \"title\": {\n          \"contains\": name\n        }\n      }))\n    });\n  })()\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 3,
+      "position": [
+        3072,
+        448
+      ],
+      "id": "99a1225c-826b-4222-b070-06477b1620ca",
+      "name": "Get many database pages(зёрна)",
+      "executeOnce": true,
+      "credentials": {
+        "notionApi": {
+          "id": "x5CsaMoY1pay7xQk",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  const rawDesc = item.json.desc || [];\n  const cleanSpecs = {};\n\n  rawDesc.forEach(text => {\n    // 1. Полностью вырезаем любые теги <svg>...</svg> вместе с содержимым\n    let cleanText = text.replace(/<svg[\\s\\S]*?<\\/svg>/g, '');\n    \n    // 2. Убираем слово info, квадратные скобки и лишний мусор\n    cleanText = cleanText\n      .replace(/info/gi, '')\n      .replace(/\\[data:image[^\\]]*\\]/g, '')\n      .trim();\n    \n    // 3. Разделяем по переносам строк\n    const parts = cleanText.split(/\\n+/).map(p => p.trim()).filter(p => p.length > 0);\n    \n    if (parts.length >= 2) {\n      const key = parts[0];\n      // Соединяем всё, что идет после ключа, в единое чистое значение\n      const value = parts.slice(1).join(', ').replace(/^[,,\\s]+/, '').trim();\n      cleanSpecs[key] = value;\n    }\n  });\n\n  return {\n    json: {\n      descriptors: item.json.descriptors || [],\n      specs: cleanSpecs\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2224,
+        448
+      ],
+      "id": "b7c2ca68-8f67-4f55-a113-03d75cdb3fac",
+      "name": "Удаление лишнего из карточки"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputItems = $input.all();\nconst results = [];\n\n// 1. Справочник стран (в нижнем регистре)\nconst knownCountries = [\n  'бразилия', 'эфиопия', 'колумбия', 'кения', 'гватемала', \n  'гондурас', 'коста-рика', 'перу', 'никарагуа', 'сальвадор', \n  'мексика', 'индонезия', 'вьетнам', 'индия', 'уганда', \n  'руанда', 'бурунди', 'танзания', 'панама', 'боливия', \n  'эквадор', 'йемен', 'китай', 'папуа — новая гвинея', 'папуа-новая гвинея'\n];\n\n// 2. Справочник известных кофейных регионов\nconst knownRegions = [\n  'иргачефф', 'сидамо', 'гуджи', 'харрар', 'лиму', 'джимма',\n  'суль-де-минас', 'серрадо', 'можиана', 'байя', 'эспириту-санту',\n  'уила', 'антьокия', 'нариньо', 'каука', 'толима', 'киндьо', 'рисаральда', 'кальдас',\n  'ньери', 'кириньяга', 'муранга', 'эмбу', 'меру',\n  'антигуа', 'уэуэтенанго', 'атитлан', 'кобан',\n  'тарразу', 'центральная долина', 'западная долина',\n  'бокете', 'волкан',\n  'кахамарка', 'куско', 'хунин',\n  'манделинг', 'ачех', 'гайо', 'тораджа', 'суматра', 'ява', 'бали',\n  'чиапас', 'оахака', 'веракрус',\n  'марагоджип', 'хинотега', 'матагальпа',\n  'копан', 'опалака', 'маркала',\n  'чиквама', 'килиманджаро', 'мбея'\n];\n\n// 3. Справочник способов обработки\nconst processingConfig = [\n  { name: '3d231822858680ea87cfe08eb904abad', keywords: ['натуральн', 'сухая', 'natural'] },\n  { name: '3d2318228586801fa947f3f8dd4792d9', keywords: ['мытая', 'мытый', 'washed'] },\n  { name: '3d23182285868072b720e675565c415d', keywords: ['хани', 'honey'] },\n  { name: '3d33182285868051b604f085c7b97770', keywords: ['анаэробн', 'anaerobic'] },\n  { name: '3d331822858680c08cede3a6a0e59f81', keywords: ['аэробн', 'aerobic'] },\n  { name: '3d231822858680c6a84de5025862c020', keywords: ['вет-халл', 'вет халл', 'wet-hull', 'wet hull', 'гилинг басах'] },\n  { name: '3d331822858680199959d02242399840', keywords: ['углекислотн', 'карбон', 'carbonic'] }\n];\n\n// 4. Словарь приведения вкусов к именительному падежу:\n// Порядок важен: сначала проверяем составные (\"тёмного шоколада\"), затем общие (\"шоколада\")\nconst descriptorsDict = [\n  // Шоколад и сладости\n  { norm: 'Тёмный шоколад', stems: ['тёмного шоколад', 'темного шоколад', 'горького шоколад', 'тёмный шоколад', 'темный шоколад'] },\n  { norm: 'Молочный шоколад', stems: ['молочного шоколад', 'молочный шоколад'] },\n  { norm: 'Белый шоколад', stems: ['белого шоколад', 'белый шоколад'] },\n  { norm: 'Шоколад', stems: ['шоколад'] },\n  { norm: 'Какао', stems: ['какао'] },\n  { norm: 'Карамель', stems: ['карамел'] },\n  { norm: 'Ирис', stems: ['ирис'] },\n  { norm: 'Нуга', stems: ['нуг'] },\n  { norm: 'Мёд', stems: ['мёд', 'мед'] },\n  { norm: 'Тростниковый сахар', stems: ['тростникового сахар', 'тростниковый сахар'] },\n  { norm: 'Ваниль', stems: ['ванил'] },\n  { norm: 'Марципан', stems: ['марципан'] },\n\n  // Орехи\n  { norm: 'Фундук', stems: ['фундук'] },\n  { norm: 'Миндаль', stems: ['миндал'] },\n  { norm: 'Грецкий орех', stems: ['грецкого орех', 'грецкий орех'] },\n  { norm: 'Арахис', stems: ['арахис'] },\n  { norm: 'Кешью', stems: ['кешью'] },\n  { norm: 'Жареные орехи', stems: ['жареных орех', 'жареные орех'] },\n  { norm: 'Орехи', stems: ['орех'] },\n\n  // Ягоды\n  { norm: 'Вишня', stems: ['вишн'] },\n  { norm: 'Черешня', stems: ['черешн'] },\n  { norm: 'Клубника', stems: ['клубник'] },\n  { norm: 'Малина', stems: ['малин'] },\n  { norm: 'Ежевика', stems: ['ежевик'] },\n  { norm: 'Черника', stems: ['черник'] },\n  { norm: 'Голубика', stems: ['голубик'] },\n  { norm: 'Чёрная смородина', stems: ['чёрной смородин', 'черной смородин', 'чёрная смородина', 'черная смородина'] },\n  { norm: 'Красная смородина', stems: ['красной смородин', 'красная смородина'] },\n  { norm: 'Смородина', stems: ['смородин'] },\n  { norm: 'Клюква', stems: ['клюкв'] },\n  { norm: 'Брусника', stems: ['брусник'] },\n  { norm: 'Крыжовник', stems: ['крыжовник'] },\n  { norm: 'Шиповник', stems: ['шиповник'] },\n  { norm: 'Ягоды', stems: ['ягод'] },\n\n  // Фрукты и цитрусы\n  { norm: 'Красное яблоко', stems: ['красного яблок', 'красное яблок'] },\n  { norm: 'Зелёное яблоко', stems: ['зелёного яблок', 'зеленого яблок', 'зелёное яблок', 'зеленое яблок'] },\n  { norm: 'Яблоко', stems: ['яблок'] },\n  { norm: 'Груша', stems: ['груш'] },\n  { norm: 'Персик', stems: ['персик'] },\n  { norm: 'Абрикос', stems: ['абрикос'] },\n  { norm: 'Нектарин', stems: ['нектарин'] },\n  { norm: 'Слива', stems: ['слив'] },\n  { norm: 'Чернослив', stems: ['чернослив'] },\n  { norm: 'Курага', stems: ['кураг'] },\n  { norm: 'Изюм', stems: ['изюм'] },\n  { norm: 'Виноград', stems: ['виноград'] },\n  { norm: 'Гранат', stems: ['гранат'] },\n  { norm: 'Инжир', stems: ['инжир'] },\n  { norm: 'Финики', stems: ['финик'] },\n  { norm: 'Апельсин', stems: ['апельсин'] },\n  { norm: 'Красный апельсин', stems: ['красного апельсин', 'красный апельсин'] },\n  { norm: 'Мандарин', stems: ['мандарин'] },\n  { norm: 'Грейпфрут', stems: ['грейпфрут'] },\n  { norm: 'Лимон', stems: ['лимон'] },\n  { norm: 'Лайм', stems: ['лайм'] },\n  { norm: 'Бергамот', stems: ['бергамот'] },\n  { norm: 'Цитрусы', stems: ['цитрус'] },\n  { norm: 'Манго', stems: ['манго'] },\n  { norm: 'Ананас', stems: ['ананас'] },\n  { norm: 'Маракуйя', stems: ['маракуй'] },\n  { norm: 'Папайя', stems: ['папай'] },\n  { norm: 'Банан', stems: ['банан'] },\n  { norm: 'Киви', stems: ['киви'] },\n  { norm: 'Дыня', stems: ['дын'] },\n  { norm: 'Арбуз', stems: ['арбуз'] },\n  { norm: 'Тропические фрукты', stems: ['тропических фрукт', 'тропические фрукт'] },\n  { norm: 'Сухофрукты', stems: ['сухофрукт'] },\n\n  // Цветы, специи и прочее\n  { norm: 'Жасмин', stems: ['жасмин'] },\n  { norm: 'Цветы', stems: ['цветочн', 'цвет'] },\n  { norm: 'Бергамот', stems: ['бергамот'] },\n  { norm: 'Чёрный чай', stems: ['чёрного ча', 'черного ча', 'чёрный чай', 'черный чай'] },\n  { norm: 'Зелёный чай', stems: ['зелёного ча', 'зеленого ча', 'зелёный чай', 'зеленый чай'] },\n  { norm: 'Каркаде', stems: ['каркаде'] },\n  { norm: 'Корица', stems: ['кориц'] },\n  { norm: 'Гвоздика', stems: ['гвоздик'] },\n  { norm: 'Кардамон', stems: ['кардамон'] },\n  { norm: 'Специи', stems: ['специ', 'пряност'] },\n  { norm: 'Табак', stems: ['табак'] }\n];\n\n// Функция нормализации одного дескриптора\nfunction normalizeDescriptor(raw) {\n  const lower = raw.trim().toLowerCase();\n  for (const entry of descriptorsDict) {\n    if (entry.stems.some(stem => lower.includes(stem))) {\n      return entry.norm;\n    }\n  }\n  // Если слова нет в словаре — возвращаем как есть, но с заглавной буквы\n  return lower.charAt(0).toUpperCase() + lower.slice(1);\n}\n\nfor (const inputItem of inputItems) {\n  const itemData = inputItem.json;\n  const specs = itemData.specs || {};\n\n  // 1. Вкусы\n  const rawDescriptors = Array.isArray(itemData.descriptors) ? itemData.descriptors : [];\n  const topDescriptors = rawDescriptors.slice(0, 3).map(normalizeDescriptor).filter(Boolean);\n\n  // 2. Страны и Регионы\n  const rawCountry = (specs['Страна'] || specs['Country'] || '').trim();\n  const rawRegion = (specs['Регион'] || specs['Region'] || '').trim();\n  const locationText = `${rawCountry} ${rawRegion}`.toLowerCase();\n\n  const foundCountries = knownCountries.filter(country => locationText.includes(country)).map(c => c.charAt(0).toUpperCase() + c.slice(1));\n  const foundRegions = knownRegions.filter(region => locationText.includes(region)).map(r => r.charAt(0).toUpperCase() + r.slice(1));\n\n  // 3. Обработка\n  const rawProcessing = (specs['Обработка'] || specs['Способ обработки'] || Object.values(specs).join(' ')).toLowerCase();\n  const processing = [];\n  for (const proc of processingConfig) {\n    if (proc.keywords.some(kw => new RegExp(`(^|[^а-яёa-z])${kw}`, 'i').test(rawProcessing))) {\n      processing.push(proc.name);\n    }\n  }\n\n  results.push({\n    json: {\n      ...itemData,\n      countries: foundCountries,\n      regions: foundRegions,\n      processing: processing,\n      descriptors: topDescriptors\n    }\n  });\n}\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        448
+      ],
+      "id": "624013fc-9497-436b-bac9-3eea20530c38",
+      "name": "Проверка нахождения ключевых слов"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (сайт про кофе)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request (сайт про кофе)": {
+      "main": [
+        [
+          {
+            "node": "HTML (сбор инфы с главной)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTML (разбор страницы кофе)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML (разбор страницы кофе)": {
+      "main": [
+        [
+          {
+            "node": "Удаление лишнего из карточки",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML (сбор инфы с главной)": {
+      "main": [
+        [
+          {
+            "node": "Карточки товаров",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many database pages (вкусы)": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages (страны)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Карточки товаров": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many database pages (страны)": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages (регионы)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many database pages (регионы)": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages(зёрна)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Замена всего на id": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many database pages(зёрна)": {
+      "main": [
+        [
+          {
+            "node": "Замена всего на id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Удаление лишнего из карточки": {
+      "main": [
+        [
+          {
+            "node": "Проверка нахождения ключевых слов",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Проверка нахождения ключевых слов": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages (вкусы)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "063a077b-0fe0-4b05-97fc-b1e6d6a7042e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4ad6ec999507993035083e6490e698c6f4afcfd144c07eee9c5bf7f39a9dbb82"
+  },
+  "nodeGroups": [],
+  "id": "i8qXw5XNcGrLrYLn",
+  "tags": []
+}

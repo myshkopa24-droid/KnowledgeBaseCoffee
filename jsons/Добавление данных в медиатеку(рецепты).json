@@ -1,0 +1,468 @@
+{
+  "name": "Добавление данных в медиатеку(рецепты)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        3248,
+        784
+      ],
+      "id": "fef8e0d0-eb45-491b-ac4a-0a01a7f11360",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://www.gastronom.ru/group/kofe-1484",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        3424,
+        784
+      ],
+      "id": "60a40840-1ae4-4f3e-ae96-24c876e145ec",
+      "name": "HTTP Request (сайт про кофе)"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "dataSourceId": {
+          "__rl": true,
+          "value": "40131822-8586-8067-8e2d-000bb2e448df",
+          "mode": "list",
+          "cachedResultName": "Медиатека / Источники",
+          "cachedResultUrl": "https://app.notion.com/p/4013182285868094a7d3db463fe96fc7"
+        },
+        "title": "={{ $json.title }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "URL (Ссылка)|url",
+              "urlValue": "=https://www.gastronom.ru{{ $json.link }}"
+            },
+            {
+              "key": "Тип контента|select",
+              "selectValue": "Рецепт"
+            },
+            {
+              "key": "Название материала|title",
+              "title": "={{ $json.title }}"
+            },
+            {
+              "key": "Источник / Магазин|rich_text",
+              "textContent": "Сайт Гастрономъ"
+            },
+            {
+              "key": "☕ Способ приготовления чашки|relation",
+              "relationValue": [
+                "={{ $json.matchedRelationIds[0] }}",
+                "={{ $json.matchedRelationIds[1] }}",
+                "={{ $json.matchedRelationIds[2] }}"
+              ]
+            },
+            {
+              "key": "Обложка / Превью|files",
+              "fileUrls": {
+                "fileUrl": [
+                  {
+                    "name": "={{ $json.title }}",
+                    "url": "={{ $json.image }}"
+                  }
+                ]
+              }
+            },
+            {
+              "key": "Дата публикации / добавления|rich_text",
+              "textContent": "={{ $json.date }}"
+            },
+            {
+              "key": "🔖 Журнал дегустаций|relation",
+              "relationValue": [
+                "={{ $json.matchedDegustationIds[0] }}",
+                "={{ $json.matchedDegustationIds[1] }}",
+                "={{ $json.matchedDegustationIds[2] }}",
+                "={{ $json.matchedDegustationIds[3] }}",
+                "={{ $json.matchedDegustationIds[4] }}"
+              ]
+            }
+          ]
+        },
+        "blockUi": {
+          "blockValues": [
+            {
+              "richText": true,
+              "text": {
+                "text": [
+                  {
+                    "text": "={{ $json.description }}",
+                    "annotationUi": {}
+                  }
+                ]
+              }
+            },
+            {
+              "textContent": "={{ $json.recipy[1] }}"
+            },
+            {
+              "textContent": "={{ $json.recipy[2] }}"
+            },
+            {
+              "textContent": "={{ $json.recipy[3] }}"
+            },
+            {
+              "textContent": "={{ $json.recipy[4] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 3,
+      "position": [
+        4720,
+        944
+      ],
+      "id": "545bdae4-106b-4ba1-bc3c-5e734e7c2eec",
+      "name": "Create a database page",
+      "alwaysOutputData": false,
+      "retryOnFail": false,
+      "credentials": {
+        "notionApi": {
+          "id": "x5CsaMoY1pay7xQk",
+          "name": "Notion account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "title",
+              "cssSelector": "._name_c4fc9_19",
+              "returnArray": true
+            },
+            {
+              "key": "link",
+              "cssSelector": "._name_c4fc9_19",
+              "returnValue": "attribute",
+              "attribute": "href",
+              "returnArray": true
+            },
+            {
+              "key": "description",
+              "cssSelector": "._description_c4fc9_185",
+              "returnArray": true
+            },
+            {
+              "key": "image",
+              "cssSelector": "._cover_c4fc9_33",
+              "returnValue": "attribute",
+              "attribute": "src",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        3616,
+        784
+      ],
+      "id": "81836d11-0c17-4d2f-a279-dd70b65ecbf3",
+      "name": "HTML (сбор инфы)"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "title, link, description, image",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1.1,
+      "position": [
+        3792,
+        784
+      ],
+      "id": "5b853aad-9815-4419-840e-d6bbb388e244",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "batchSize": 12,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        3920,
+        944
+      ],
+      "id": "7e68a44c-5bac-4096-83a8-9d20a2471f9b",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "recipy",
+              "cssSelector": "._editorjsContent_1ugmb_2",
+              "returnArray": true
+            },
+            {
+              "key": "date",
+              "cssSelector": "._date_1ludw_37"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        4208,
+        784
+      ],
+      "id": "798cd30e-27c3-420a-b5b8-e02ca45fda47",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4208,
+        944
+      ],
+      "id": "4ab62dd4-abb7-4121-ac35-dd1ea86539d8",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "dataSourceId": {
+          "__rl": true,
+          "value": "3dc31822-8586-8023-ac0d-000bcb069144",
+          "mode": "list",
+          "cachedResultName": "Журнал дегустаций",
+          "cachedResultUrl": "https://app.notion.com/p/3dc3182285868048bda8cca69a279028"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 3,
+      "position": [
+        4384,
+        944
+      ],
+      "id": "217b93eb-3d61-4337-b408-39da2095efa0",
+      "name": "Get many database pages (дегустации)",
+      "executeOnce": true,
+      "credentials": {
+        "notionApi": {
+          "id": "x5CsaMoY1pay7xQk",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://www.gastronom.ru{{ $json.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        4048,
+        784
+      ],
+      "id": "ffa0bca0-7acf-4cac-98f0-084c986cdfb7",
+      "name": "HTTP Request (страница рецепта)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Берем РЕЦЕПТЫ из ноды Merge\nconst recipeItems = $('Merge').all();\n\n// 2. Берем ДЕГУСТАЦИИ со входа текущей ноды\nconst degustationItems = $input.all();\n\nconst results = [];\n\n// Функция для очистки строк (убираем скобки и приводим к нижнему регистру)\nfunction normalizeText(text) {\n  if (!text) return \"\";\n  return String(text)\n    .toLowerCase()\n    .replace(/\\([^)]*\\)/g, \"\")\n    .trim();\n}\n\n// Перебираем каждый РЕЦЕПТ\nfor (const recipeItem of recipeItems) {\n  // Блок 1: Определение способов приготовления по тексту рецепта \n  let recipeText = \"\";\n  if (recipeItem.json.recipy) {\n    if (Array.isArray(recipeItem.json.recipy)) {\n      recipeText = recipeItem.json.recipy.join(\" \").toLowerCase();\n    } else {\n      recipeText = String(recipeItem.json.recipy).toLowerCase();\n    }\n  }\n\n  const methodsConfig = [\n    { name: \"Френч-пресс\", keywords: [\"френч-пресс\", \"french press\"], id: \"3db31822858680a483cdfd408b65157f\" },\n    { name: \"V60 / Пуровер\", keywords: [\"пуровер\", \"v60\", \"drip\"], id: \"3db318228586808c88cbefd9016fdd7b\" },\n    { name: \"Аэропресс\", keywords: [\"аэропресс\", \"aeropress\"], id: \"3db3182285868014827ed1311185e2b8\" },\n    { name: \"Джезва / Турка\", keywords: [\"джезв\", \"турк\", \"cezve\"], id: \"3db318228586803c941bd3f7265612ca\" },\n    { name: \"Эспрессо\", keywords: [\"эспрессо\", \"espresso\"], id: \"3db31822858680d2a27cf783f941b4e6\" }\n  ];\n\n  const matchedIds = [];\n  const matchedNames = [];\n\n  for (const method of methodsConfig) {\n    const found = method.keywords.some(keyword => recipeText.includes(keyword));\n    if (found) {\n      matchedIds.push(method.id);\n      matchedNames.push(method.name);\n    }\n  }\n\n  // Блок 2: Поиск совпадений названия рецепта в журнале дегустаций\n  const rawRecipeTitle = recipeItem.json.title || \"\";\n  const recipeTitleFull = rawRecipeTitle.toLowerCase().trim();\n  const recipeTitleClean = normalizeText(rawRecipeTitle);\n\n  const matchedDegustationIds = [];\n\n  for (const degItem of degustationItems) {\n    const rawDegTitle = degItem.json.name || degItem.json.title || \"\";\n    const degTitleFull = String(rawDegTitle).toLowerCase().trim();\n    const degTitleClean = normalizeText(rawDegTitle);\n\n    const isMatch =\n      (recipeTitleFull && degTitleFull && (degTitleFull.includes(recipeTitleFull) || recipeTitleFull.includes(degTitleFull))) ||\n      (recipeTitleClean && degTitleClean && (degTitleClean.includes(recipeTitleClean) || recipeTitleClean.includes(degTitleClean)));\n\n    if (isMatch) {\n      const pageId = degItem.json.id;\n      if (pageId && !matchedDegustationIds.includes(pageId)) {\n        matchedDegustationIds.push(pageId);\n      }\n    }\n  }\n\n  // Возвращаем данные РЕЦЕПТА + найденные ID\n  results.push({\n    json: {\n      ...recipeItem.json,\n      matchedRelationIds: matchedIds,\n      matchedMethodNames: matchedNames,\n      matchedDegustationIds: matchedDegustationIds\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4544,
+        944
+      ],
+      "id": "a5e30a91-d5f0-4985-b009-aed0f0ca53cb",
+      "name": "Преобразование данных в ID"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (сайт про кофе)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request (сайт про кофе)": {
+      "main": [
+        [
+          {
+            "node": "HTML (сбор инфы)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML (сбор инфы)": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP Request (страница рецепта)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a database page": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages (дегустации)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many database pages (дегустации)": {
+      "main": [
+        [
+          {
+            "node": "Преобразование данных в ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request (страница рецепта)": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Преобразование данных в ID": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6db2b3c9-f31a-433d-ba5e-6b03dbc56bd9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4ad6ec999507993035083e6490e698c6f4afcfd144c07eee9c5bf7f39a9dbb82"
+  },
+  "nodeGroups": [],
+  "id": "TIYl4Ujm2APr9qqS",
+  "tags": []
+}
